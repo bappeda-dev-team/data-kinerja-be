@@ -19,6 +19,14 @@ public class DataKinerjaPemdaController {
 
     private final DataKinerjaPemdaService service;
 
+    @GetMapping("/list")
+    public ResponseEntity<ApiResponse<List<DataKinerjaPemdaDto.WrapperResponse>>> findAll(
+            @RequestParam(name = "jenis_data_id", required = false) Integer jenisDataId
+    ) {
+        List<DataKinerjaPemdaDto.WrapperResponse> responses = service.findAll(jenisDataId);
+        return ResponseEntity.ok(ApiResponse.success(responses, "OK"));
+    }
+
     @PostMapping
     public ResponseEntity<ApiResponse<DataKinerjaPemdaDto.Response>> create(@Valid @RequestBody DataKinerjaPemdaDto.CreateRequest request) {
         DataKinerjaPemdaDto.Response response = service.create(request);
@@ -52,13 +60,5 @@ public class DataKinerjaPemdaController {
     public ResponseEntity<ApiResponse<DataKinerjaPemdaDto.Response>> findById(@PathVariable Integer id) {
         DataKinerjaPemdaDto.Response response = service.findById(id);
         return ResponseEntity.ok(ApiResponse.success(response, "OK"));
-    }
-
-    @GetMapping("/list")
-    public ResponseEntity<ApiResponse<List<DataKinerjaPemdaDto.WrapperResponse>>> findAll(
-            @RequestParam(name = "jenis_data_id", required = false) Integer jenisDataId
-    ) {
-        List<DataKinerjaPemdaDto.WrapperResponse> responses = service.findAll(jenisDataId);
-        return ResponseEntity.ok(ApiResponse.success(responses, "OK"));
     }
 }

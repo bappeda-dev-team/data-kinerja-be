@@ -15,12 +15,17 @@ import java.util.List;
 @Configuration
 public class OpenApiConfig {
 
+    // Inject Port juga biar dinamis (Optional, tapi lebih aman pakai relative path atau serverUrl null biar otomatis)
     @Value("${server.servlet.context-path:/}")
     private String contextPath;
 
+    // Inject server port (kalau mau eksplisit)
+    @Value("${server.port:8080}")
+    private String serverPort;
+
     @Bean
     public OpenAPI customOpenAPI() {
-        String serverUrl = "http://localhost:8181" + contextPath;
+        String serverUrl = "http://localhost:" + serverPort + contextPath;
         
         return new OpenAPI()
               .info(new Info()

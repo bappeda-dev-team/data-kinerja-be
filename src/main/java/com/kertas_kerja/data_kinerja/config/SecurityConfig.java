@@ -59,17 +59,21 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 🔥 2. GUNAKAN WILDCARD (Bintang) untuk semua Origin
-        // Ini akan mengizinkan localhost, IP network, zeabur, dll.
-        configuration.setAllowedOriginPatterns(List.of("*"));
+        // ✅ WAJIB origin eksplisit kalau allowCredentials = true
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:3001"
+        ));
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+        configuration.setAllowedMethods(List.of(
+                "GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"
+        ));
 
-        // 🔥 3. IZINKAN SEMUA HEADER
-        // Biar ga pusing nge-list satu-satu (Authorization, X-Session-Id, dll)
         configuration.setAllowedHeaders(List.of("*"));
 
-        configuration.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
+        configuration.setExposedHeaders(List.of(
+                "Authorization"
+        ));
 
         configuration.setAllowCredentials(true);
 

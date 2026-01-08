@@ -4,6 +4,7 @@ import com.kertas_kerja.data_kinerja.security.CustomBasicAuthenticationEntryPoin
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod; // Jangan lupa import ini
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -36,7 +37,12 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
+                        // 🔥 1. IZINKAN PREFLIGHT (OPTIONS) UNTUK SEMUA URL
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
                         .requestMatchers("/actuator/health", "/public/**").permitAll()
+                        // Pastikan endpoint list kamu juga masuk sini kalau memang public
+                        // Jika butuh auth, pastikan token valid
                         .requestMatchers("/auth/**", "/jenisdata/**", "/jenisdataopd/**", "/datakinerjapemda/**", "/datakinerjaopd/**").permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").authenticated()
                         .anyRequest().authenticated()
@@ -53,27 +59,18 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of(
-                "http://localhost:3000",
-                "http://127.0.0.1:3000",
-                "https://192.168.1.*:3000",
-                "https://kta-service.zeabur.app"
-        ));
+        // 🔥 2. GUNAKAN WILDCARD (Bintang) untuk semua Origin
+        // Ini akan mengizinkan localhost, IP network, zeabur, dll.
+        configuration.setAllowedOriginPatterns(List.of("*"));
 
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
-        configuration.setAllowedHeaders(List.of(
-                "Authorization",
-                "Content-Type",
-                "X-Requested-With",
-                "Accept",
-                "Origin",
-                "Access-Control-Request-Method",
-                "Access-Control-Request-Headers",
-                "X-Session-Id"
-        ));
+        // 🔥 3. IZINKAN SEMUA HEADER
+        // Biar ga pusing nge-list satu-satu (Authorization, X-Session-Id, dll)
+        configuration.setAllowedHeaders(List.of("*"));
 
         configuration.setExposedHeaders(List.of("Authorization", "Access-Control-Allow-Origin", "Access-Control-Allow-Credentials"));
+
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

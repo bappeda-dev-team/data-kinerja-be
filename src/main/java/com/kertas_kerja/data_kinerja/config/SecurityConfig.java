@@ -41,7 +41,17 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers("/actuator/health", "/public/**").permitAll()
-                        .requestMatchers("/auth/**", "/pohon-kinerja/**", "/indikator/**", "/target/**").permitAll()
+                        .requestMatchers(
+                                "/auth/**",
+                                "/pohon-kinerja/**",
+                                "/indikator/**",
+                                "/target/**",
+                                "/jenisdata/**",       // <-- Tambahkan jika ada
+                                "/jenisdataopd/**",    // <-- Tambahkan jika ada
+                                "/datakinerjapemda/**",// <-- Tambahkan jika ada
+                                "/datakinerjaopd/**",  // <-- Tambahkan jika ada
+                                "/api/v1/**"           // <-- Atau pakai wildcard global kalau ada prefix ini
+                        ).permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").authenticated()
                         .anyRequest().authenticated()
                 )

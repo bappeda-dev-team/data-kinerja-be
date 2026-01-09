@@ -21,6 +21,7 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Configuration
@@ -35,16 +36,21 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Panggil config CORS
+                // 🔥 PENTING: CORS harus diaktifkan SEBELUM authorize
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Allow Preflight (OPTIONS) - Wajib buat React/NextJS fetch
+                        // 1. ✅ Allow semua OPTIONS request (preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // 2. Public endpoints
+                        // 2. ✅ Public endpoints (TANPA AUTH)
                         .requestMatchers("/actuator/health", "/public/**").permitAll()
-                        .requestMatchers("/auth/**", "/jenisdata/**", "/jenisdataopd/**", "/datakinerjapemda/**", "/datakinerjaopd/**").permitAll()
+                        .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/jenisdata/**").permitAll()
+                        .requestMatchers("/jenisdataopd/**").permitAll()
+                        .requestMatchers("/datakinerjapemda/**").permitAll()
+                        .requestMatchers("/datakinerjaopd/**").permitAll()
 
-                        // 3. Swagger & Protected endpoints
+                        // 3. Protected endpoints (PERLU AUTH)
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -60,27 +66,34 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // 🔥 PERBAIKAN 1: Gunakan AllowedOrigins eksplisit seperti kode yang berhasil
-        // Pastikan URL frontend Zeabur kamu juga masuk sini!
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://127.0.0.1:3000",
-                "https://kta-service.zeabur.app", // Contoh domain zeabur kamu (sesuaikan jika beda)
-                "https://nama-project-frontend-kamu.zeabur.app" // TAMBAHKAN URL FRONTEND KAMU DISINI
+        // 🔥 CRITICAL: Allowed Origins
+        configuration.setAllowedOriginPatterns(List.of("*")); // Untuk development
+        // Untuk production, ganti dengan:
+        // configuration.setAllowedOrigins(Arrays.asList(
+        //     "http://localhost:3000",
+        //     "https://your-frontend.zeabur.app"
+        // ));
+
+        // 🔥 CRITICAL: Allowed Methods
+        configuration.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"
         ));
 
-        // 🔥 PERBAIKAN 2: Allowed Methods lengkap
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-
-        // 🔥 PERBAIKAN 3: Gunakan setAllowedHeaders (List) bukan addAllowedHeader
+        // 🔥 CRITICAL: Allowed Headers (semua header diizinkan)
         configuration.setAllowedHeaders(List.of("*"));
 
-        // Expose header agar frontend bisa baca (terutama jika pakai custom header auth nanti)
-        configuration.setExposedHeaders(List.of("Authorization", "X-Session-Id"));
+        // 🔥 CRITICAL: Expose Headers (agar frontend bisa baca)
+        configuration.setExposedHeaders(Arrays.asList(
+                "Authorization",
+                "Content-Type",
+                "X-Session-Id"
+        ));
 
-        // Allow credentials (Cookies/Auth headers)
+        // 🔥 CRITICAL: Allow Credentials
         configuration.setAllowCredentials(true);
+
+        // 🔥 CRITICAL: Max Age (cache preflight response)
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

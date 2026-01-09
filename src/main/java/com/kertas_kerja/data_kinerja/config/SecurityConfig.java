@@ -4,7 +4,7 @@ import com.kertas_kerja.data_kinerja.security.CustomBasicAuthenticationEntryPoin
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // Jangan lupa import ini
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -35,15 +35,16 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Panggil config CORS
                 .authorizeHttpRequests(auth -> auth
-                        // 🔥 1. IZINKAN PREFLIGHT (OPTIONS) UNTUK SEMUA URL
+                        // 1. Allow Preflight (OPTIONS) - Wajib buat React/NextJS fetch
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
+                        // 2. Public endpoints
                         .requestMatchers("/actuator/health", "/public/**").permitAll()
-                        // Pastikan endpoint list kamu juga masuk sini kalau memang public
-                        // Jika butuh auth, pastikan token valid
                         .requestMatchers("/auth/**", "/jenisdata/**", "/jenisdataopd/**", "/datakinerjapemda/**", "/datakinerjaopd/**").permitAll()
+
+                        // 3. Swagger & Protected endpoints
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -59,15 +60,26 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOriginPatterns(List.of("http://localhost:*"));
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS","PATCH"));
-        configuration.addAllowedHeader("*");
-        configuration.setAllowCredentials(true);
-
-        configuration.setExposedHeaders(List.of(
-                "Authorization"
+        // 🔥 PERBAIKAN 1: Gunakan AllowedOrigins eksplisit seperti kode yang berhasil
+        // Pastikan URL frontend Zeabur kamu juga masuk sini!
+        configuration.setAllowedOrigins(List.of(
+                "http://localhost:3000",
+                "http://localhost:3001",
+                "http://127.0.0.1:3000",
+                "https://kta-service.zeabur.app", // Contoh domain zeabur kamu (sesuaikan jika beda)
+                "https://nama-project-frontend-kamu.zeabur.app" // TAMBAHKAN URL FRONTEND KAMU DISINI
         ));
 
+        // 🔥 PERBAIKAN 2: Allowed Methods lengkap
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // 🔥 PERBAIKAN 3: Gunakan setAllowedHeaders (List) bukan addAllowedHeader
+        configuration.setAllowedHeaders(List.of("*"));
+
+        // Expose header agar frontend bisa baca (terutama jika pakai custom header auth nanti)
+        configuration.setExposedHeaders(List.of("Authorization", "X-Session-Id"));
+
+        // Allow credentials (Cookies/Auth headers)
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
@@ -82,7 +94,6 @@ public class SecurityConfig {
                 .password(passwordEncoder().encode("katasandi"))
                 .roles("ADMIN")
                 .build();
-
         return new InMemoryUserDetailsManager(user);
     }
 

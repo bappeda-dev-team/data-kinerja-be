@@ -4,7 +4,7 @@ import com.kertas_kerja.data_kinerja.security.CustomBasicAuthenticationEntryPoin
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpMethod; // ⚠️ JANGAN LUPA IMPORT INI
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -46,11 +46,11 @@ public class SecurityConfig {
                                 "/pohon-kinerja/**",
                                 "/indikator/**",
                                 "/target/**",
-                                "/jenisdata/**",       // <-- Tambahkan jika ada
-                                "/jenisdataopd/**",    // <-- Tambahkan jika ada
-                                "/datakinerjapemda/**",// <-- Tambahkan jika ada
-                                "/datakinerjaopd/**",  // <-- Tambahkan jika ada
-                                "/api/v1/**"           // <-- Atau pakai wildcard global kalau ada prefix ini
+                                "/jenisdata/**",
+                                "/jenisdataopd/**",
+                                "/datakinerjapemda/**",
+                                "/datakinerjaopd/**",
+                                "/api/v1/**"
                         ).permitAll()
                         .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").authenticated()
                         .anyRequest().authenticated()
@@ -67,14 +67,13 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // Pastikan URL frontend benar-benar http (bukan https) di localhost
         configuration.setAllowedOrigins(List.of(
                 "http://localhost:3000",
                 "http://192.168.1.38:3000",
+                "https://data-kinerja-fe.zeabur.app/",
                 "https://kta-service.zeabur.app"
         ));
 
-        // 🔥 Saran: Tambahkan PATCH jika ada kemungkinan dipakai
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
         configuration.setAllowedHeaders(List.of("*"));

@@ -101,7 +101,7 @@ public class JenisDataService {
 
     @Transactional
     public void deleteOpd(int id) {
-        repository.findById(id)
+        repository.findByIdOpd(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Data tidak ditemukan"));
 
         repository.deleteOpd(id);

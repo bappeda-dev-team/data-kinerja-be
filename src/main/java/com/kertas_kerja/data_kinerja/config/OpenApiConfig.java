@@ -20,7 +20,7 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        String serverUrl = "http://localhost:8181" + contextPath;
+        String serverUrl = "https://data-kinerja-api.zeabur.app" + contextPath;
 
         return new OpenAPI()
                 .info(new Info()

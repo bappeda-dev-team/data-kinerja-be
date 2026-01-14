@@ -37,7 +37,6 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(auth -> auth
-                        // 🔥 TAMBAHAN PENTING: Izinkan semua request OPTIONS (Preflight)
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         .requestMatchers("/actuator/health", "/public/**").permitAll()
